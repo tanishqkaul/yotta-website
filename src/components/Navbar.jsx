@@ -6,27 +6,29 @@ import { cn } from '@/lib/utils'
 const navLinks = [
   {
     label: 'Products',
+    href: '#products',
     children: [
-      { label: 'Shakti Cloud (AI)', desc: 'Sovereign GPU cloud platform' },
-      { label: 'Yotta Cloud', desc: 'Hyperscale cloud platform' },
-      { label: 'Render Cloud', desc: 'High-performance rendering' },
-      { label: 'Smart Surveillance', desc: 'AI-powered VMS' },
-      { label: 'Shakti Studio', desc: 'AI inference platform' },
-      { label: 'Smart Cybersecurity', desc: 'Unified security suite' },
+      { label: 'Shakti Cloud (AI)', href: '#products', desc: 'Sovereign GPU cloud platform' },
+      { label: 'Yotta Cloud', href: '#products', desc: 'Hyperscale cloud platform' },
+      { label: 'Render Cloud', href: '#products', desc: 'High-performance rendering' },
+      { label: 'Smart Surveillance', href: '#products', desc: 'AI-powered VMS' },
+      { label: 'Shakti Studio', href: '#products', desc: 'AI inference platform' },
+      { label: 'Smart Cybersecurity', href: '#products', desc: 'Unified security suite' },
     ],
   },
   {
     label: 'Solutions',
+    href: '#ai-factory',
     children: [
-      { label: 'Enterprise', desc: 'For large organizations' },
-      { label: 'Startups', desc: 'Scale-ready infrastructure' },
-      { label: 'Government', desc: 'Compliant sovereign stack' },
-      { label: 'BFSI', desc: 'Financial sector ready' },
+      { label: 'Enterprise', href: '#ai-factory', desc: 'For large organizations' },
+      { label: 'Startups', href: '#ai-factory', desc: 'Scale-ready infrastructure' },
+      { label: 'Government', href: '#ai-factory', desc: 'Compliant sovereign stack' },
+      { label: 'BFSI', href: '#ai-factory', desc: 'Financial sector ready' },
     ],
   },
-  { label: 'Data Centers' },
-  { label: 'Resources' },
-  { label: 'About' },
+  { label: 'Data Centers', href: '#data-centers' },
+  { label: 'Resources', href: '#why-yotta' },
+  { label: 'About', href: '#leadership' },
 ]
 
 function DropdownMenu({ items }) {
@@ -35,7 +37,7 @@ function DropdownMenu({ items }) {
       {items.map((item) => (
         <a
           key={item.label}
-          href="#"
+          href={item.href}
           className="flex flex-col px-4 py-3 hover:bg-brand-blue/10 transition-colors group"
         >
           <span className="text-sm font-medium text-slate-200 group-hover:text-white">
@@ -75,7 +77,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2 group">
+          <a href="#hero" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-gradient-brand flex items-center justify-center shadow-brand">
               <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
             </div>
@@ -93,7 +95,10 @@ export default function Navbar() {
                 onMouseEnter={() => link.children && setActiveDropdown(link.label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+                <a
+                  href={link.href}
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg hover:bg-white/5 transition-all"
+                >
                   {link.label}
                   {link.children && (
                     <ChevronDown
@@ -103,7 +108,7 @@ export default function Navbar() {
                       )}
                     />
                   )}
-                </button>
+                </a>
                 {link.children && activeDropdown === link.label && (
                   <DropdownMenu items={link.children} />
                 )}
@@ -113,12 +118,12 @@ export default function Navbar() {
 
           {/* CTA */}
           <div className="hidden lg:flex items-center gap-3">
-            <button className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2">
+            <a href="#contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2">
               Sign In
-            </button>
-            <Button size="sm" className="shadow-brand">
+            </a>
+            <a href="#contact"><Button size="sm" className="shadow-brand">
               Get Started
-            </Button>
+            </Button></a>
           </div>
 
           {/* Mobile menu toggle */}
@@ -137,19 +142,24 @@ export default function Navbar() {
               {navLinks.map((link) => (
                 <a
                   key={link.label}
-                  href="#"
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
                   className="px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                 >
                   {link.label}
                 </a>
               ))}
               <div className="pt-4 flex gap-3">
-                <Button variant="outline" size="sm" className="flex-1">
-                  Sign In
-                </Button>
-                <Button size="sm" className="flex-1">
-                  Get Started
-                </Button>
+                <a href="#contact" onClick={() => setMobileOpen(false)} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Sign In
+                  </Button>
+                </a>
+                <a href="#contact" onClick={() => setMobileOpen(false)} className="flex-1">
+                  <Button size="sm" className="w-full">
+                    Get Started
+                  </Button>
+                </a>
               </div>
             </nav>
           </div>

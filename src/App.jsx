@@ -17,17 +17,17 @@ export default function App() {
     <div className="min-h-screen bg-space-900 text-slate-100">
       <Navbar />
       <main>
-        <Hero />
-        <TrustBar />
-        <Products />
-        <AIFactory />
-        <DataCenters />
-        <Stats />
-        <Testimonials />
-        <WhyYotta />
-        <Leadership />
-        <Partners />
-        <CTA />
+        <section id="hero"><Hero /></section>
+        <section id="trust"><TrustBar /></section>
+        <section id="products"><Products /></section>
+        <section id="ai-factory"><AIFactory /></section>
+        <section id="data-centers"><DataCenters /></section>
+        <section id="stats"><Stats /></section>
+        <section id="testimonials"><Testimonials /></section>
+        <section id="why-yotta"><WhyYotta /></section>
+        <section id="leadership"><Leadership /></section>
+        <section id="partners"><Partners /></section>
+        <section id="contact"><CTA /></section>
       </main>
       <Footer />
     </div>

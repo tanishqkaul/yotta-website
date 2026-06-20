@@ -61,16 +61,20 @@ export default function Hero() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="group">
-                Explore Products
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button size="lg" variant="outline" className="group gap-2">
-                <span className="w-8 h-8 rounded-full border border-brand-blue/50 flex items-center justify-center group-hover:border-brand-blue transition-colors">
-                  <Play className="w-3 h-3 text-brand-blue fill-brand-blue" />
-                </span>
-                Watch Demo
-              </Button>
+              <a href="#products">
+                <Button size="lg" className="group">
+                  Explore Products
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </a>
+              <a href="#testimonials" onClick={(e) => { e.preventDefault(); alert('Watch demo video: https://yotta.com/demo'); }}>
+                <Button size="lg" variant="outline" className="group gap-2">
+                  <span className="w-8 h-8 rounded-full border border-brand-blue/50 flex items-center justify-center group-hover:border-brand-blue transition-colors">
+                    <Play className="w-3 h-3 text-brand-blue fill-brand-blue" />
+                  </span>
+                  Watch Demo
+                </Button>
+              </a>
             </div>
 
             {/* Quick Stats */}

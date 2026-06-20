@@ -13,7 +13,7 @@ const products = [
     border: 'hover:border-brand-purple/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(124,58,237,0.25)]',
     iconBg: 'bg-gradient-to-br from-brand-purple-dark to-brand-purple',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Cloud,
@@ -25,7 +25,7 @@ const products = [
     border: 'hover:border-brand-blue/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(37,99,235,0.25)]',
     iconBg: 'bg-gradient-to-br from-brand-blue-dark to-brand-blue',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Film,
@@ -37,7 +37,7 @@ const products = [
     border: 'hover:border-pink-500/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(236,72,153,0.2)]',
     iconBg: 'bg-gradient-to-br from-pink-700 to-pink-500',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Eye,
@@ -49,7 +49,7 @@ const products = [
     border: 'hover:border-brand-cyan/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]',
     iconBg: 'bg-gradient-to-br from-teal-700 to-brand-cyan',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Zap,
@@ -61,7 +61,7 @@ const products = [
     border: 'hover:border-brand-gold/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]',
     iconBg: 'bg-gradient-to-br from-amber-700 to-brand-gold',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Server,
@@ -73,7 +73,7 @@ const products = [
     border: 'hover:border-slate-500/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(100,116,139,0.2)]',
     iconBg: 'bg-gradient-to-br from-slate-700 to-slate-500',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Shield,
@@ -85,7 +85,7 @@ const products = [
     border: 'hover:border-emerald-500/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]',
     iconBg: 'bg-gradient-to-br from-emerald-800 to-emerald-500',
-    href: '#',
+    href: '#products',
   },
   {
     icon: Archive,
@@ -97,7 +97,7 @@ const products = [
     border: 'hover:border-violet-500/40',
     glow: 'group-hover:shadow-[0_0_30px_rgba(139,92,246,0.2)]',
     iconBg: 'bg-gradient-to-br from-violet-800 to-violet-500',
-    href: '#',
+    href: '#products',
   },
 ]
 

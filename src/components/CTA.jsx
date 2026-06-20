@@ -62,13 +62,17 @@ export default function CTA() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-          <Button size="xl" className="group min-w-[200px] glow-blue">
-            Get a Free Consultation
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          <Button size="xl" variant="outline" className="min-w-[200px]">
-            View Product Demos
-          </Button>
+          <a href="mailto:marketing@yotta.com">
+            <Button size="xl" className="group min-w-[200px] glow-blue">
+              Get a Free Consultation
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </a>
+          <a href="#products">
+            <Button size="xl" variant="outline" className="min-w-[200px]">
+              View Product Demos
+            </Button>
+          </a>
         </div>
 
         {/* Contact info */}
