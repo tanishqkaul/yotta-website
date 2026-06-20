@@ -1,25 +1,51 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import ThreeGlobe from 'three-globe'
 
-const SPHERE_RADIUS = 2.2
-const PARTICLE_COUNT = 2800
-const STAR_COUNT = 600
+const COUNTRIES_URL = '/countries.geojson'
 
-function latLonToVec3(lat, lon, radius) {
-  const phi = ((90 - lat) * Math.PI) / 180
-  const theta = ((lon + 180) * Math.PI) / 180
-  return new THREE.Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
-  )
+const DCS = [
+  { lat: 19.07, lng: 72.87, name: 'Navi Mumbai', color: '#22d3ee', size: 1.0 },
+  { lat: 28.61, lng: 77.2,  name: 'Delhi NCR',   color: '#3b82f6', size: 1.0 },
+  { lat: 23.16, lng: 72.68, name: 'GIFT City',   color: '#a855f7', size: 0.85 },
+]
+
+const ENDPOINTS = [
+  { lat: 1.35,   lng: 103.8,  name: 'Singapore' },
+  { lat: 25.2,   lng: 55.27,  name: 'Dubai'     },
+  { lat: 51.5,   lng: -0.12,  name: 'London'    },
+  { lat: 40.71,  lng: -74.0,  name: 'New York'  },
+  { lat: 35.68,  lng: 139.7,  name: 'Tokyo'     },
+  { lat: -33.87, lng: 151.2,  name: 'Sydney'    },
+  { lat: 50.11,  lng: 8.68,   name: 'Frankfurt' },
+]
+
+function buildArcs() {
+  const arcs = []
+  DCS.forEach((dc, di) => {
+    ENDPOINTS.forEach((ep, ei) => {
+      if ((di + ei) % 2 !== 0) return
+      arcs.push({
+        startLat: dc.lat, startLng: dc.lng,
+        endLat: ep.lat,   endLng: ep.lng,
+        color: [dc.color, '#7dd3fc'],
+        dashInitGap: Math.random() * 3,
+      })
+    })
+  })
+  arcs.push({ startLat: DCS[0].lat, startLng: DCS[0].lng, endLat: DCS[1].lat, endLng: DCS[1].lng, color: ['#22d3ee','#3b82f6'], dashInitGap: 0 })
+  arcs.push({ startLat: DCS[0].lat, startLng: DCS[0].lng, endLat: DCS[2].lat, endLng: DCS[2].lng, color: ['#22d3ee','#a855f7'], dashInitGap: 0.5 })
+  arcs.push({ startLat: DCS[1].lat, startLng: DCS[1].lng, endLat: DCS[2].lat, endLng: DCS[2].lng, color: ['#3b82f6','#a855f7'], dashInitGap: 1.0 })
+  return arcs
 }
 
-const DATA_CENTERS = [
-  { lat: 19.1, lon: 73.0, label: 'Navi Mumbai' },
-  { lat: 28.7, lon: 77.1, label: 'Delhi NCR' },
-  { lat: 23.2, lon: 72.7, label: 'GIFT City' },
-]
+// All points: DCs + global endpoints (smaller)
+function buildPoints() {
+  return [
+    ...DCS.map(d => ({ ...d, altitude: 0.015, radius: 0.55 })),
+    ...ENDPOINTS.map(e => ({ ...e, color: '#7dd3fc', altitude: 0.008, radius: 0.25, size: 0.5 })),
+  ]
+}
 
 export default function Globe() {
   const mountRef = useRef(null)
@@ -28,273 +54,205 @@ export default function Globe() {
     const container = mountRef.current
     if (!container) return
 
-    const isMobile = window.innerWidth < 768
-    const particleCount = isMobile ? 1400 : PARTICLE_COUNT
-
     let width = container.clientWidth
     let height = container.clientHeight
 
-    // Scene & Camera
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100)
-    camera.position.z = 5.5
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
+    camera.position.z = 290
 
-    // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(width, height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0x000000, 0)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.shadowMap.enabled = true
     container.appendChild(renderer.domElement)
 
-    // ─── Particle sphere ───────────────────────────────────────────────────────
-    const positions = new Float32Array(particleCount * 3)
-    const colors = new Float32Array(particleCount * 3)
-    const sizes = new Float32Array(particleCount)
+    // Lights — subtle to keep globe dark so hex polygons pop
+    const ambient = new THREE.AmbientLight(0x112244, 1.2)
+    scene.add(ambient)
+    const keyLight = new THREE.DirectionalLight(0x4488cc, 1.8)
+    keyLight.position.set(-150, 180, 220)
+    scene.add(keyLight)
+    const rimLight = new THREE.DirectionalLight(0x0a2040, 0.6)
+    rimLight.position.set(200, -80, -150)
+    scene.add(rimLight)
 
-    const goldenRatio = (1 + Math.sqrt(5)) / 2
-    for (let i = 0; i < particleCount; i++) {
-      const theta = (2 * Math.PI * i) / goldenRatio
-      const phi = Math.acos(1 - (2 * (i + 0.5)) / particleCount)
+    // Globe
+    const globe = new ThreeGlobe({ animateIn: true })
+      .showGlobe(true)
+      .showAtmosphere(true)
+      .atmosphereColor('#1e90ff')
+      .atmosphereAltitude(0.22)
 
-      const jitter = 1 + (Math.random() - 0.5) * 0.03
-      const r = SPHERE_RADIUS * jitter
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-      positions[i * 3 + 1] = r * Math.cos(phi)
-      positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta)
+    // Custom material — very dark ocean so continents contrast sharply
+    const globeMat = globe.globeMaterial()
+    globeMat.color        = new THREE.Color(0x020b18)
+    globeMat.emissive     = new THREE.Color(0x020b18)
+    globeMat.emissiveIntensity = 0.1
+    globeMat.specular     = new THREE.Color(0x1155aa)
+    globeMat.shininess    = 12
 
-      const t = Math.random()
-      if (t < 0.55) {
-        colors[i * 3] = 0.232; colors[i * 3 + 1] = 0.510; colors[i * 3 + 2] = 0.965 // blue #3B82F6
-      } else if (t < 0.82) {
-        colors[i * 3] = 0.024; colors[i * 3 + 1] = 0.714; colors[i * 3 + 2] = 0.831 // cyan #06B6D4
-      } else {
-        colors[i * 3] = 0.66; colors[i * 3 + 1] = 0.86; colors[i * 3 + 2] = 1.0 // bright
-      }
+    // Arcs
+    globe
+      .arcsData(buildArcs())
+      .arcColor('color')
+      .arcAltitude(() => 0.2 + Math.random() * 0.15)
+      .arcStroke(0.6)
+      .arcDashLength(0.45)
+      .arcDashGap(1.4)
+      .arcDashInitialGap('dashInitGap')
+      .arcDashAnimateTime(2200)
 
-      sizes[i] = Math.random() * 1.8 + 0.6
-    }
+    // Points — DCs brighter, endpoints smaller
+    globe
+      .pointsData(buildPoints())
+      .pointLat('lat')
+      .pointLng('lng')
+      .pointColor('color')
+      .pointAltitude('altitude')
+      .pointRadius('radius')
 
-    const sphereGeo = new THREE.BufferGeometry()
-    sphereGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    sphereGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    sphereGeo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
+    // Rings on DCs only
+    globe
+      .ringsData(DCS)
+      .ringLat('lat')
+      .ringLng('lng')
+      .ringColor((d) => (t) => {
+        const c = new THREE.Color(d.color)
+        const r = Math.round(c.r * 255)
+        const g = Math.round(c.g * 255)
+        const b = Math.round(c.b * 255)
+        return `rgba(${r},${g},${b},${1 - t})`
+      })
+      .ringMaxRadius(6)
+      .ringPropagationSpeed(2.5)
+      .ringRepeatPeriod(850)
 
-    const sphereMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
-      vertexShader: `
-        attribute float aSize;
-        attribute vec3 color;
-        varying vec3 vColor;
-        varying float vOpacity;
-        uniform float uTime;
+    // Labels for DCs
+    globe
+      .labelsData(DCS)
+      .labelLat('lat')
+      .labelLng('lng')
+      .labelText('name')
+      .labelSize(0.5)
+      .labelDotRadius(0.3)
+      .labelColor('color')
+      .labelResolution(3)
+      .labelAltitude(0.025)
 
-        void main() {
-          vColor = color;
-          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-          float dist = -mvPos.z;
-          vOpacity = smoothstep(8.0, 3.0, dist);
-          gl_PointSize = aSize * (280.0 / dist);
-          gl_Position = projectionMatrix * mvPos;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vColor;
-        varying float vOpacity;
+    scene.add(globe)
 
-        void main() {
-          vec2 uv = gl_PointCoord - 0.5;
-          float d = length(uv);
-          if (d > 0.5) discard;
-          float alpha = (1.0 - smoothstep(0.25, 0.5, d)) * vOpacity * 0.85;
-          gl_FragColor = vec4(vColor, alpha);
-        }
-      `,
+    // Countries hex polygons
+    fetch(COUNTRIES_URL)
+      .then(r => r.json())
+      .then(countries => {
+        globe
+          .hexPolygonsData(countries.features)
+          .hexPolygonResolution(3)
+          .hexPolygonMargin(0.3)
+          .hexPolygonAltitude(0.004)
+          .hexPolygonColor(() => 'rgba(14,165,233,0.7)')
+      })
+      .catch(() => {})
+
+    // Clouds (semi-transparent sphere slightly above globe)
+    const cloudsMat = new THREE.MeshPhongMaterial({
+      color: 0xffffff,
       transparent: true,
+      opacity: 0.08,
       depthWrite: false,
     })
-
-    const spherePoints = new THREE.Points(sphereGeo, sphereMat)
-    scene.add(spherePoints)
-
-    // ─── Outer glow ring ───────────────────────────────────────────────────────
-    const ringGeo = new THREE.TorusGeometry(SPHERE_RADIUS + 0.08, 0.005, 8, 120)
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0x22d3ee,
-      transparent: true,
-      opacity: 0.25,
-    })
-    const ring = new THREE.Mesh(ringGeo, ringMat)
-    ring.rotation.x = Math.PI * 0.3
-    scene.add(ring)
-
-    const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(SPHERE_RADIUS + 0.2, 0.003, 8, 100),
-      new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.12 })
+    const cloudsMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(102.5, 48, 48),
+      cloudsMat
     )
-    ring2.rotation.x = Math.PI * 0.6
-    ring2.rotation.y = Math.PI * 0.3
-    scene.add(ring2)
+    globe.add(cloudsMesh)
 
-    // ─── Star field ────────────────────────────────────────────────────────────
-    const starPositions = new Float32Array(STAR_COUNT * 3)
-    for (let i = 0; i < STAR_COUNT; i++) {
-      const spread = 18
-      starPositions[i * 3] = (Math.random() - 0.5) * spread
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * spread
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * spread - 2
+    // Initial orientation
+    globe.rotation.y = -Math.PI * 0.55
+    globe.rotation.x = Math.PI * 0.08
+
+    // Starfield — two layers for depth
+    function addStars(count, rMin, rMax, color, size, opacity) {
+      const pos = new Float32Array(count * 3)
+      for (let i = 0; i < count; i++) {
+        const r  = rMin + Math.random() * (rMax - rMin)
+        const th = Math.random() * Math.PI * 2
+        const ph = Math.acos(2 * Math.random() - 1)
+        pos[i * 3]     = r * Math.sin(ph) * Math.cos(th)
+        pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th)
+        pos[i * 3 + 2] = r * Math.cos(ph)
+      }
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+      scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
+        color, size, transparent: true, opacity, sizeAttenuation: true,
+      })))
     }
-    const starGeo = new THREE.BufferGeometry()
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3))
-    const starMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.018,
-      transparent: true,
-      opacity: 0.55,
-    })
-    scene.add(new THREE.Points(starGeo, starMat))
+    addStars(800,  650, 900,  0xaaccff, 1.8, 0.6)
+    addStars(400,  900, 1200, 0xffffff, 1.2, 0.4)
+    addStars(200,  500, 650,  0x88ddff, 2.2, 0.35)
 
-    // ─── Data center nodes ─────────────────────────────────────────────────────
-    const nodeGroup = new THREE.Group()
-    const nodePulseRings = []
+    // Drag-to-rotate + mouse parallax
+    let isDragging = false
+    let prevMouse = { x: 0, y: 0 }
+    let autoRotate = true
+    let dragVelX = 0, dragVelY = 0
 
-    DATA_CENTERS.forEach(({ lat, lon }, i) => {
-      const pos = latLonToVec3(lat, lon, SPHERE_RADIUS + 0.04)
-      // Bright core dot
-      const coreGeo = new THREE.SphereGeometry(0.04, 12, 12)
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff })
-      const core = new THREE.Mesh(coreGeo, coreMat)
-      core.position.copy(pos)
-      nodeGroup.add(core)
+    const canvas = renderer.domElement
+    canvas.style.cursor = 'grab'
 
-      // Pulse ring 1
-      const pr1Geo = new THREE.RingGeometry(0.05, 0.085, 32)
-      const pr1Mat = new THREE.MeshBasicMaterial({
-        color: 0x22d3ee,
-        transparent: true,
-        opacity: 0.7,
-        side: THREE.DoubleSide,
-      })
-      const pr1 = new THREE.Mesh(pr1Geo, pr1Mat)
-      pr1.position.copy(pos)
-      pr1.lookAt(new THREE.Vector3(0, 0, 6))
-      nodeGroup.add(pr1)
-      nodePulseRings.push({ mesh: pr1, mat: pr1Mat, offset: i * 1.1 })
-
-      // Pulse ring 2 (outer)
-      const pr2Geo = new THREE.RingGeometry(0.09, 0.14, 32)
-      const pr2Mat = new THREE.MeshBasicMaterial({
-        color: 0x3b82f6,
-        transparent: true,
-        opacity: 0.4,
-        side: THREE.DoubleSide,
-      })
-      const pr2 = new THREE.Mesh(pr2Geo, pr2Mat)
-      pr2.position.copy(pos)
-      pr2.lookAt(new THREE.Vector3(0, 0, 6))
-      nodeGroup.add(pr2)
-      nodePulseRings.push({ mesh: pr2, mat: pr2Mat, offset: i * 1.1 + 0.5 })
-    })
-
-    // Connection arcs between nodes
-    const dcPositions = DATA_CENTERS.map(({ lat, lon }) =>
-      latLonToVec3(lat, lon, SPHERE_RADIUS + 0.06)
-    )
-    const pairs = [[0, 1], [1, 2], [0, 2]]
-    pairs.forEach(([a, b]) => {
-      const pointA = dcPositions[a]
-      const pointB = dcPositions[b]
-      const mid = new THREE.Vector3()
-        .addVectors(pointA, pointB)
-        .multiplyScalar(0.5)
-        .normalize()
-        .multiplyScalar(SPHERE_RADIUS * 1.25)
-
-      const curve = new THREE.QuadraticBezierCurve3(pointA, mid, pointB)
-      const pts = curve.getPoints(40)
-      const arcGeo = new THREE.BufferGeometry().setFromPoints(pts)
-      const arcMat = new THREE.LineBasicMaterial({
-        color: 0x22d3ee,
-        transparent: true,
-        opacity: 0.35,
-      })
-      nodeGroup.add(new THREE.Line(arcGeo, arcMat))
-    })
-
-    scene.add(nodeGroup)
-
-    // ─── Ambient glow sprite ───────────────────────────────────────────────────
-    const glowCanvas = document.createElement('canvas')
-    glowCanvas.width = 128; glowCanvas.height = 128
-    const glowCtx = glowCanvas.getContext('2d')
-    const grad = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 64)
-    grad.addColorStop(0, 'rgba(59,130,246,0.5)')
-    grad.addColorStop(0.4, 'rgba(6,182,212,0.15)')
-    grad.addColorStop(1, 'rgba(0,0,0,0)')
-    glowCtx.fillStyle = grad
-    glowCtx.fillRect(0, 0, 128, 128)
-
-    const glowTex = new THREE.CanvasTexture(glowCanvas)
-    const glowMat = new THREE.SpriteMaterial({ map: glowTex, transparent: true, opacity: 0.6, depthWrite: false })
-    const glowSprite = new THREE.Sprite(glowMat)
-    glowSprite.scale.set(8, 8, 1)
-    glowSprite.position.z = -1
-    scene.add(glowSprite)
-
-    // ─── Mouse parallax ────────────────────────────────────────────────────────
-    let targetRX = 0, targetRY = 0, currentRX = 0, currentRY = 0
-
-    const onMouseMove = (e) => {
-      targetRY = ((e.clientX / window.innerWidth) - 0.5) * 0.4
-      targetRX = -((e.clientY / window.innerHeight) - 0.5) * 0.25
+    const onDown = e => {
+      isDragging = true
+      autoRotate = false
+      dragVelX = 0
+      dragVelY = 0
+      prevMouse = { x: e.clientX, y: e.clientY }
+      canvas.style.cursor = 'grabbing'
     }
-    window.addEventListener('mousemove', onMouseMove)
+    const onUp = () => {
+      isDragging = false
+      canvas.style.cursor = 'grab'
+      // Resume auto-rotate after 2s of no drag
+      setTimeout(() => { autoRotate = true }, 2000)
+    }
+    const onMove = e => {
+      if (isDragging) {
+        const dx = (e.clientX - prevMouse.x) * 0.005
+        const dy = (e.clientY - prevMouse.y) * 0.004
+        globe.rotation.y += dx
+        globe.rotation.x += dy
+        dragVelX = dx
+        dragVelY = dy
+        prevMouse = { x: e.clientX, y: e.clientY }
+      }
+    }
+    canvas.addEventListener('mousedown', onDown)
+    window.addEventListener('mouseup', onUp)
+    window.addEventListener('mousemove', onMove)
 
-    // ─── Animation loop ────────────────────────────────────────────────────────
-    let frameId
-    let t = 0
-    const mainGroup = new THREE.Group()
-    mainGroup.add(spherePoints)
-    mainGroup.add(nodeGroup)
-    mainGroup.add(ring)
-    mainGroup.add(ring2)
-    scene.remove(spherePoints)
-    scene.remove(nodeGroup)
-    scene.remove(ring)
-    scene.remove(ring2)
-    scene.add(mainGroup)
-
+    const baseTilt = Math.PI * 0.08
+    let raf
     const animate = () => {
-      frameId = requestAnimationFrame(animate)
-      t += 0.008
-
-      sphereMat.uniforms.uTime.value = t
-      mainGroup.rotation.y += 0.0025
-
-      // Smooth parallax
-      currentRX += (targetRX - currentRX) * 0.05
-      currentRY += (targetRY - currentRY) * 0.05
-      mainGroup.rotation.x = currentRX
-      mainGroup.rotation.y += currentRY * 0.01
-
-      // Pulse rings
-      nodePulseRings.forEach(({ mesh, mat, offset }) => {
-        const pulse = (Math.sin(t * 1.8 + offset) + 1) / 2
-        const scale = 1 + pulse * 0.6
-        mesh.scale.setScalar(scale)
-        mat.opacity = (1 - pulse) * 0.7
-      })
-
-      // Ring rotation
-      ring.rotation.z += 0.001
-      ring2.rotation.z -= 0.0008
-
+      raf = requestAnimationFrame(animate)
+      if (autoRotate) {
+        globe.rotation.y += 0.0016
+      } else if (!isDragging) {
+        // Inertia
+        dragVelX *= 0.95
+        dragVelY *= 0.95
+        globe.rotation.y += dragVelX
+        globe.rotation.x += dragVelY
+      }
+      cloudsMesh.rotation.y -= 0.0004
       renderer.render(scene, camera)
     }
     animate()
 
-    // ─── Resize ────────────────────────────────────────────────────────────────
     const onResize = () => {
-      width = container.clientWidth
+      width  = container.clientWidth
       height = container.clientHeight
       camera.aspect = width / height
       camera.updateProjectionMatrix()
@@ -303,15 +261,13 @@ export default function Globe() {
     window.addEventListener('resize', onResize)
 
     return () => {
-      cancelAnimationFrame(frameId)
-      window.removeEventListener('mousemove', onMouseMove)
+      cancelAnimationFrame(raf)
+      canvas.removeEventListener('mousedown', onDown)
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('mousemove', onMove)
       window.removeEventListener('resize', onResize)
       renderer.dispose()
-      sphereGeo.dispose()
-      sphereMat.dispose()
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement)
-      }
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
   }, [])
 

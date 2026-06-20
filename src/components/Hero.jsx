@@ -96,19 +96,19 @@ export default function Hero() {
             <Globe />
 
             {/* DC Labels (floating cards on globe edge) */}
-            <div className="absolute top-12 right-4 glass-light rounded-xl px-3 py-2 border border-brand-cyan/20">
+            <div className="absolute top-12 right-4 glass-light rounded-xl px-3 py-2 border border-brand-cyan/20 pointer-events-none">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse" />
                 <span className="text-xs font-medium text-brand-cyan">Delhi NCR</span>
               </div>
             </div>
-            <div className="absolute bottom-20 right-12 glass-light rounded-xl px-3 py-2 border border-brand-blue/20">
+            <div className="absolute bottom-20 right-12 glass-light rounded-xl px-3 py-2 border border-brand-blue/20 pointer-events-none">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
                 <span className="text-xs font-medium text-brand-blue-light">Navi Mumbai</span>
               </div>
             </div>
-            <div className="absolute bottom-36 right-4 glass-light rounded-xl px-3 py-2 border border-brand-purple/20">
+            <div className="absolute bottom-36 right-4 glass-light rounded-xl px-3 py-2 border border-brand-purple/20 pointer-events-none">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />
                 <span className="text-xs font-medium text-brand-purple">GIFT City</span>
